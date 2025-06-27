@@ -1,0 +1,259 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f9f9f9;
+}
+
+header {
+  background-color: #f8b500;
+  padding: 20px;
+  text-align: center;
+  color: white;
+}
+
+header a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  float: right;
+  margin-right: 20px;
+}
+
+main {
+  padding: 20px;
+  padding-bottom: 60px; /* Espaço para o rodapé fixo */
+}
+
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 colunas padrão */
+  gap: 20px;
+}
+
+.product {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.product img {
+  max-width: 100%;
+  height: 150px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* Carrinho */
+.cart-container {
+  padding: 20px;
+}
+
+#cartItems {
+  list-style: none;
+  padding: 0;
+}
+
+.cart-item {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ccc;
+  padding: 15px 0;
+}
+
+.cart-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.item-info h3 {
+  margin: 0 0 5px;
+}
+
+.item-info p {
+  margin: 2px 0;
+}
+
+.total {
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+.checkout-button {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: #f8b500;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.remove-button {
+  background-color: transparent;
+  border: none;
+  color: #c00;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+/* Checkout */
+.checkout-container {
+  padding: 20px;
+  max-width: 500px;
+  margin: auto;
+}
+
+form label {
+  display: block;
+  margin: 10px 0;
+}
+
+button[type="submit"] {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+.payment-details {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.payment-details label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Rodapé fixo */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f8b500;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  z-index: 999;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.footer-link,
+.cart-link {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  margin: 0 10px;
+}
+
+.footer-link:hover,
+.cart-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .product-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .product-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .product-list {
+    grid-template-columns: 1fr;
+  }
+}
+.user-name {
+  color: white;
+  font-weight: bold;
+  padding: 8px 16px;
+}
+
+.login-button {
+  background-color: #000;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-button:hover {
+  background-color: #333;
+  text-decoration: underline;
+}
+header {
+  background-color: #f8b500;
+  padding: 20px;
+  text-align: center;
+  color: white;
+  position: relative;
+}
+
+#userArea {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.user-name {
+  margin-right: 10px;
+  font-weight: bold;
+  color: white;
+}
+
+.logout-button {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background-color: #333;
+}
