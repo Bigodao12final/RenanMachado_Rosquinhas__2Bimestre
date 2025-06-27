@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho - Rosquinhas do Renan</title>
+  <link rel="stylesheet" href="css/rosquinhas.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Seu Carrinho</h1>
+    <a href="rosquinhas.html">Voltar às Rosquinhas</a>
+  </header>
+
+  <main>
+    <div class="cart-container">
+      <ul id="cartItems"></ul>
+      <p class="total"><strong>Total:</strong> R$ <span id="total">0.00</span></p>
+      <a href="pagamento.html" class="checkout-button">Ir para Pagamento</a>
+    </div>
+  </main>
+
+  <script>
+    const productImages = {
+      'Rosquinha Cremosa': 'img/cremosa.jpg',
+      'Rosquinha Tradicional': 'img/tradicional.jpg',
+      'Rosquinha de Chocolate': 'img/chocolate.jpg',
+      'Rosquinha de Morango': 'img/morango.jpg',
+      'Rosquinha de Baunilha':'img/baunilha.jpg',
+      'Rosquinha Doce de Leite':'img/docedeleite.jpg',
+      'Rosquinha de Limão':'img/limao.jpg',
+      'Rosquinha de Coco':'img/coco.jpg',
+      'Rosquinha Recheada':'img/recheada.jpg',
+      'Rosquinha de Flocos':'img/flocos.jpg',
+      'Rosquinha com Gotas de Chocolate':'img/gotasdechocolate.jpg',
+      'Rosquinha de Maracujá':'img/maracuja.jpg',
+      'Rosquinha de Canela':'img/canela.jpg',
+      'Rosquinha de Brigadeiro':'img/brigadeiro.jpg',
+      'Rosquinha de Granulado':'img/granulado.jpg'
+
+    };
+
+    function loadCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cartItems = document.getElementById('cartItems');
+      const totalEl = document.getElementById('total');
+      cartItems.innerHTML = '';
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.classList.add('cart-item');
+
+        const img = document.createElement('img');
+        img.src = productImages[item.name] || 'img/default.jpg';
+        img.alt = item.name;
+
+        const info = document.createElement('div');
+        info.classList.add('item-info');
+        info.innerHTML = `
+          <h3>${item.name}</h3>
+          <p>Quantidade: ${item.quantity}</p>
+          <p>Preço Unitário: R$ ${item.price.toFixed(2)}</p>
+          <p>Total: R$ ${(item.price * item.quantity).toFixed(2)}</p>
+        `;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '❌';
+        removeBtn.classList.add('remove-button');
+        removeBtn.onclick = () => removeFromCart(index);
+
+        li.appendChild(img);
+        li.appendChild(info);
+        li.appendChild(removeBtn);
+        cartItems.appendChild(li);
+
+        total += item.price * item.quantity;
+      });
+
+      totalEl.textContent = total.toFixed(2);
+    }
+
+    function removeFromCart(index) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart.splice(index, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      loadCart(); // Atualiza a tela
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>
