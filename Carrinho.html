@@ -17,7 +17,7 @@
     <div class="cart-container">
       <ul id="cartItems"></ul>
       <p class="total"><strong>Total:</strong> R$ <span id="total">0.00</span></p>
-      <a href="pagamento.html" class="checkout-button">Ir para Pagamento</a>
+    <a href="pagamento.html" class="checkout-button" id="checkoutBtn">Ir para Pagamento</a>
     </div>
   </main>
 
@@ -90,5 +90,16 @@
 
     loadCart();
   </script>
+  <script>
+  document.getElementById('checkoutBtn').addEventListener('click', function (e) {
+    const loggedUser = localStorage.getItem('loggedUser');
+
+    if (!loggedUser) {
+      e.preventDefault(); // Impede o redirecionamento
+      alert("Você precisa estar logado para prosseguir com o pagamento.");
+      window.location.href = "login.html"; // Redireciona para tela de login
+    }
+  });
+</script>
 </body>
 </html>
