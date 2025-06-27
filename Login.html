@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Rosquinhas do Renan</title>
+  <link rel="stylesheet" href="css/rosquinhas.css" />
+</head>
+<body>
+  <header>
+    <h1>Vamos conhecer mais sobre você</h1>
+    <a href="rosquinhas.html">← Voltar</a>
+  </header>
+
+  <main class="checkout-container">
+    <form id="loginForm">
+      <label>Nome de Usuário:
+        <input type="text" name="username" required />
+      </label><br/>
+      <label>E-mail:
+        <input type="email" name="email" required />
+      </label><br/>
+      <label>Senha:
+        <input type="password" name="password" required />
+      </label><br/><br/>
+      <button type="submit">Concluir login</button>
+    </form>
+  </main>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const username = this.username.value.trim();
+      if (!username) {
+        alert("Por favor, insira seu nome de usuário.");
+        return;
+      }
+
+      localStorage.setItem('loggedUser', username);
+      window.location.href = 'rosquinhas.html';
+    });
+  </script>
+</body>
+</html>
