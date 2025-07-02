@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pagamento - Rosquinhas do Renan</title>
-  <link rel="stylesheet" href="css/rosquinhas.css" />
+  <link rel="stylesheet" href="rosquinhas.css" />
 </head>
 <body>
 
@@ -120,11 +120,7 @@
         </div>
   
         <br/>
-<div class="payment-confirm-container">
-  <button type="submit" id="confirmPaymentBtn">
-    <span class="btn-icon">✓</span> Confirmar Pagamento
-  </button>
-</div>
+        <button type="submit">Confirmar Pagamento</button>
       </form>
     </div>
   </main>
@@ -179,7 +175,7 @@
       const method = document.querySelector('input[name="payment"]:checked')?.value || '';
       alert(`Pagamento confirmado via ${method.toUpperCase()}`);
       localStorage.removeItem('cart');
-      window.location.href = "rosquinhas.html";
+      window.location.href = "index.html";
 
     });
   </script>
