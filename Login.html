@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - Rosquinhas do Renan</title>
-  <link rel="stylesheet" href="css/rosquinhas.css" />
+  <link rel="stylesheet" href="rosquinhas.css" />
 </head>
 <body>
   <header>
     <h1>Vamos conhecer mais sobre você</h1>
-    <a href="rosquinhas.html">← Voltar</a>
+    <a href="index.html">← Voltar</a>
   </header>
 
   <main class="checkout-container">
@@ -28,18 +28,23 @@
   </main>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const username = this.username.value.trim();
-      if (!username) {
-        alert("Por favor, insira seu nome de usuário.");
-        return;
-      }
-
-      localStorage.setItem('loggedUser', username);
-      window.location.href = 'rosquinhas.html';
-    });
+   // Modifique o login.js ou o script inline para verificar os usuários cadastrados
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const username = this.username.value.trim();
+  const password = this.password.value;
+  
+  const users = JSON.parse(localStorage.getItem('users')) || [];
+  const user = users.find(u => u.username === username && u.password === password);
+  
+  if (user) {
+    localStorage.setItem('loggedUser', username);
+    window.location.href = 'index.html';
+  } else {
+    alert("Credenciais inválidas ou usuário não cadastrado!");
+  }
+});
   </script>
 </body>
 </html>
