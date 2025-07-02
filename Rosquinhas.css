@@ -257,3 +257,34 @@ header {
 .logout-button:hover {
   background-color: #333;
 }
+/* Estilos para o formulário de cadastro */
+.register-button {
+  background-color: #1b0b3f;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-left: 10px;
+  text-decoration: none;
+}
+
+.register-button:hover {
+  background-color: #160422;
+}
+
+#registerForm label {
+  display: block;
+  margin-bottom: 15px;
+}
+
+#registerForm input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  box-sizing: border-box;
+}
+/* NOVO - Posicionamento lado a lado */
+#userArea {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espaço entre os elementos */
+}
