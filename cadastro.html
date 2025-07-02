@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Rosquinhas do Renan</title>
+  <link rel="stylesheet" href="rosquinhas.css">
+</head>
+<body>
+  <header>
+    <h1>Crie sua conta</h1>
+    <a href="index.html">← Voltar</a>
+  </header>
+
+  <main class="checkout-container">
+    <form id="registerForm">
+      <label>Nome Completo:
+        <input type="text" name="fullname" required>
+      </label>
+      
+      <label>E-mail:
+        <input type="email" name="email" required>
+      </label>
+      
+      <label>Nome de Usuário:
+        <input type="text" name="username" required>
+      </label>
+      
+      <label>Senha:
+        <input type="password" name="password" required minlength="6">
+      </label>
+      
+      <label>Confirme sua Senha:
+        <input type="password" name="confirmPassword" required>
+      </label>
+      
+      <button type="submit">Criar conta</button>
+    </form>
+  </main>
+
+  <script src="cadastro.js"></script>
+</body>
+</html>
