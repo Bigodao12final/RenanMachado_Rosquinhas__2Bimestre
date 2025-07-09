@@ -1,17 +1,33 @@
-  // Modifique o login.js ou o script inline para verificar os usuários cadastrados
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
-  const username = this.username.value.trim();
-  const password = this.password.value;
-  
-  const users = JSON.parse(localStorage.getItem('users')) || [];
-  const user = users.find(u => u.username === username && u.password === password);
-  
-  if (user) {
-    localStorage.setItem('loggedUser', username);
+  const credentials = {
+    username: this.username.value.trim(),
+    password: this.password.value
+  };
+
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro no login');
+    }
+
+    // Armazena o token e redireciona
+    sessionStorage.setItem('authToken', data.token);
+    sessionStorage.setItem('username', data.username);
+    
     window.location.href = 'index.html';
-  } else {
-    alert("Credenciais inválidas ou usuário não cadastrado!");
+  } catch (error) {
+    alert(error.message);
+    console.error('Erro no login:', error);
   }
 });

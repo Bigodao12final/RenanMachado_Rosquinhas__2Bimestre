@@ -1,15 +1,14 @@
-document.getElementById('registerForm').addEventListener('submit', function(e) {
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
   const formData = {
-    fullname: this.fullname.value.trim(),
-    email: this.email.value.trim(),
     username: this.username.value.trim(),
+    email: this.email.value.trim(),
     password: this.password.value,
     confirmPassword: this.confirmPassword.value
   };
 
-  // Validações (mantidas do seu código original)
+  // Validações client-side
   if (formData.password !== formData.confirmPassword) {
     alert("As senhas não coincidem!");
     return;
@@ -20,29 +19,29 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     return;
   }
 
-  // Verifica se usuário já existe
-  const users = JSON.parse(localStorage.getItem('users')) || [];
-  if (users.some(user => user.username === formData.username)) {
-    alert("Nome de usuário já em uso!");
-    return;
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro no cadastro');
+    }
+
+    // Armazena o token e redireciona
+    sessionStorage.setItem('authToken', data.token);
+    sessionStorage.setItem('username', data.username);
+    
+    alert('Cadastro realizado com sucesso!');
+    window.location.href = 'index.html';
+  } catch (error) {
+    alert(error.message);
+    console.error('Erro no cadastro:', error);
   }
-
-  if (users.some(user => user.email === formData.email)) {
-    alert("E-mail já cadastrado!");
-    return;
-  }
-
-  // Adiciona novo usuário
-  users.push({
-    id: Date.now(),
-    ...formData,
-    createdAt: new Date().toISOString()
-  });
-
-  localStorage.setItem('users', JSON.stringify(users));
-  localStorage.setItem('loggedUser', formData.username);
-  localStorage.setItem('userRegistered', 'true'); // ⭐ NOVA LINHA (única mudança real)
-
-  alert("Cadastro realizado com sucesso!");
-  window.location.href = 'index.html';
 });
