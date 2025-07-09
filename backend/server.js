@@ -14,7 +14,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Middleware de autenticação
+// Middlewares
 function authenticate(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Acesso não autorizado' });
@@ -25,6 +25,18 @@ function authenticate(req, res, next) {
   } catch (error) {
     res.status(403).json({ error: 'Token inválido' });
   }
+}
+
+function authenticateOptional(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (token) {
+    try {
+      req.user = jwt.verify(token, 'SEGREDO_DO_JWT');
+    } catch (error) {
+      // Token inválido, continua como guest
+    }
+  }
+  next();
 }
 
 // Rotas de Autenticação
@@ -83,10 +95,18 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Rotas do Carrinho
-app.get('/api/cart', authenticate, async (req, res) => {
+app.get('/api/cart', authenticateOptional, async (req, res) => {
   try {
     const carts = await readCSV(path.join(__dirname, 'models/carts.csv'));
-    const userCart = carts.filter(c => c.userId == req.user.userId);
+    let userCart = [];
+    
+    if (req.user) {
+      userCart = carts.filter(c => c.userId == req.user.userId);
+    } else {
+      const sessionId = req.headers['session-id'] || 'guest';
+      userCart = carts.filter(c => c.sessionId == sessionId);
+    }
+    
     res.json(userCart);
   } catch (error) {
     console.error('Erro ao obter carrinho:', error);
@@ -94,14 +114,22 @@ app.get('/api/cart', authenticate, async (req, res) => {
   }
 });
 
-app.post('/api/cart', authenticate, async (req, res) => {
+app.post('/api/cart', authenticateOptional, async (req, res) => {
   try {
     const { productId, name, price, quantity } = req.body;
     const carts = await readCSV(path.join(__dirname, 'models/carts.csv'));
     
-    // Verifica se o produto já está no carrinho
+    let identifier;
+    if (req.user) {
+      identifier = { userId: req.user.userId };
+    } else {
+      identifier = { sessionId: req.headers['session-id'] || 'guest' };
+    }
+
     const existingItem = carts.find(
-      c => c.userId == req.user.userId && c.productId == productId
+      c => c.productId == productId && 
+      ((c.userId && c.userId == identifier.userId) || 
+       (c.sessionId && c.sessionId == identifier.sessionId))
     );
 
     if (existingItem) {
@@ -109,7 +137,7 @@ app.post('/api/cart', authenticate, async (req, res) => {
     } else {
       carts.push({
         id: Date.now(),
-        userId: req.user.userId,
+        ...identifier,
         productId,
         name,
         price,
@@ -125,12 +153,21 @@ app.post('/api/cart', authenticate, async (req, res) => {
   }
 });
 
-app.delete('/api/cart/:id', authenticate, async (req, res) => {
+app.delete('/api/cart/:id', authenticateOptional, async (req, res) => {
   try {
     const carts = await readCSV(path.join(__dirname, 'models/carts.csv'));
-    const filteredCarts = carts.filter(
-      c => !(c.userId == req.user.userId && c.id == req.params.id)
-    );
+    
+    let filteredCarts;
+    if (req.user) {
+      filteredCarts = carts.filter(
+        c => !(c.userId == req.user.userId && c.id == req.params.id)
+      );
+    } else {
+      const sessionId = req.headers['session-id'] || 'guest';
+      filteredCarts = carts.filter(
+        c => !(c.sessionId == sessionId && c.id == req.params.id)
+      );
+    }
 
     await writeCSV(path.join(__dirname, 'models/carts.csv'), filteredCarts);
     res.json({ success: true });
@@ -164,10 +201,36 @@ app.post('/api/payment', authenticate, async (req, res) => {
   }
 });
 
+// Migrar carrinho guest para usuário
+app.post('/api/cart/migrate', authenticate, async (req, res) => {
+  try {
+    const sessionId = req.headers['session-id'];
+    if (!sessionId) {
+      return res.json({ success: true });
+    }
+
+    const carts = await readCSV(path.join(__dirname, 'models/carts.csv'));
+    const guestCart = carts.filter(c => c.sessionId == sessionId);
+
+    // Atualizar para userId
+    for (const item of guestCart) {
+      item.userId = req.user.userId;
+      delete item.sessionId;
+    }
+
+    await writeCSV(path.join(__dirname, 'models/carts.csv'), carts);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao migrar carrinho:', error);
+    res.status(500).json({ error: 'Erro interno no servidor' });
+  }
+});
+
 // Servir frontend
-app.get(/^\/(?!api).*/, (req, res) => {  // Ignora rotas que começam com /api
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
+
 // Funções auxiliares para CSV
 async function readCSV(filePath) {
   try {

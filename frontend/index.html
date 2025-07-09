@@ -10,7 +10,12 @@
 
   <header>
     <h1>Rosquinhas do Renan</h1>
-  <span id="userArea"></span>
+    <div id="userArea">
+      <span id="userGreeting"></span>
+      <a href="login.html" id="loginLink" class="auth-link">Login</a>
+      <a href="cadastro.html" id="registerLink" class="auth-link">Cadastre-se</a>
+      <a href="#" id="logoutLink" class="auth-link" style="display: none;" onclick="logout()">Sair</a>
+    </div>
   </header>
 
   <main>
@@ -134,16 +139,17 @@
         <p>R$ 4,90</p>
         <button onclick="addToCart('Rosquinha de Café', 4.90)">Adicionar ao Carrinho</button>
       </div>
+    </div>
 
-      <div class="footer-bar">
-        <div class="footer-content">
-          <a href="https://www.instagram.com/renan.big/.html" class="footer-link">Contato</a>
-          <a href="sobre.html" class="footer-link">Sobre</a>
-          <a href="carrinho.html" class="footer-link">Carrinho</a>
-          
-        </div>
+    <div class="footer-bar">
+      <div class="footer-content">
+        <a href="https://www.instagram.com/renan.big/.html" class="footer-link">Contato</a>
+        <a href="sobre.html" class="footer-link">Sobre</a>
+        <a href="carrinho.html" class="footer-link">Carrinho</a>
       </div>
+    </div>
 
-  <script src="js/index.js"></script>
+    <script src="js/index.js"></script>
+  </main>
 </body>
 </html>

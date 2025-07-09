@@ -4,18 +4,26 @@ const productImages = {
   // ... (outras imagens de produtos)
 };
 
+// Gerar sessionId único para usuários não logados
+let sessionId = localStorage.getItem('sessionId');
+if (!sessionId) {
+  sessionId = 'guest-' + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem('sessionId', sessionId);
+}
+
 async function loadCart() {
   try {
     const token = sessionStorage.getItem('authToken');
-    if (!token) {
-      document.getElementById('cartItems').innerHTML = '<p>Faça login para ver seu carrinho</p>';
-      return;
+    const headers = {};
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      headers['Session-Id'] = sessionId;
     }
 
     const response = await fetch('/api/cart', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: headers
     });
 
     if (!response.ok) {
@@ -71,20 +79,56 @@ async function loadCart() {
   }
 }
 
+async function addToCart(productId, name, price) {
+  try {
+    const token = sessionStorage.getItem('authToken');
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      headers['Session-Id'] = sessionId;
+    }
+
+    const response = await fetch('/api/cart', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        productId,
+        name,
+        price,
+        quantity: 1
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao adicionar ao carrinho');
+    }
+
+    showToast(`${name} adicionado ao carrinho!`);
+    updateCartCounter();
+  } catch (error) {
+    console.error('Erro ao adicionar ao carrinho:', error);
+    alert(error.message);
+  }
+}
+
 async function removeFromCart(itemId) {
   try {
     const token = sessionStorage.getItem('authToken');
-    if (!token) {
-      alert('Você precisa estar logado para remover itens');
-      window.location.href = 'login.html';
-      return;
+    const headers = {};
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      headers['Session-Id'] = sessionId;
     }
 
     const response = await fetch(`/api/cart/${itemId}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: headers
     });
 
     if (!response.ok) {
@@ -98,14 +142,86 @@ async function removeFromCart(itemId) {
   }
 }
 
+// Migrar carrinho guest para usuário após login
+async function migrateGuestCart() {
+  const token = sessionStorage.getItem('authToken');
+  if (!token || !sessionId) return;
+
+  try {
+    const response = await fetch('/api/cart/migrate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Session-Id': sessionId
+      }
+    });
+
+    if (response.ok) {
+      localStorage.removeItem('sessionId');
+      sessionId = null;
+    }
+  } catch (error) {
+    console.error('Erro ao migrar carrinho:', error);
+  }
+}
+
 document.getElementById('checkoutBtn').addEventListener('click', function(e) {
   const token = sessionStorage.getItem('authToken');
   if (!token) {
     e.preventDefault();
     alert("Você precisa estar logado para prosseguir com o pagamento.");
-    window.location.href = "login.html";
+    window.location.href = "login.html?redirect=carrinho";
   }
 });
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', loadCart);
+document.addEventListener('DOMContentLoaded', () => {
+  loadCart();
+  
+  // Verificar se veio de login para migrar carrinho
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('migrate') === 'true') {
+    migrateGuestCart();
+  }
+});
+
+// Função auxiliar para mostrar notificações
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+// Atualizar contador do carrinho
+async function updateCartCounter() {
+  const countElement = document.getElementById('cartCount');
+  if (!countElement) return;
+
+  try {
+    const token = sessionStorage.getItem('authToken');
+    const headers = {};
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      headers['Session-Id'] = sessionId;
+    }
+
+    const response = await fetch('/api/cart', {
+      headers: headers
+    });
+
+    if (response.ok) {
+      const cart = await response.json();
+      const totalItems = cart.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+      countElement.textContent = totalItems;
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar contador:', error);
+  }
+}

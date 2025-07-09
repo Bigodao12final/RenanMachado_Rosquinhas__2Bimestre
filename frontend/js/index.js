@@ -94,15 +94,15 @@ function checkLoggedIn() {
   const username = sessionStorage.getItem('username');
   
   if (token && username) {
-    document.getElementById('loginLink').style.display = 'none';
-    document.getElementById('registerLink').style.display = 'none';
-    document.getElementById('logoutLink').style.display = 'block';
     document.getElementById('userGreeting').textContent = `Olá, ${username}`;
+    document.getElementById('logoutLink').style.display = 'block';
   } else {
     document.getElementById('logoutLink').style.display = 'none';
   }
+  // Sempre mostra login/cadastro
+  document.getElementById('loginLink').style.display = 'block';
+  document.getElementById('registerLink').style.display = 'block';
 }
-
 // Logout
 function logout() {
   sessionStorage.removeItem('authToken');

@@ -23,9 +23,17 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     // Armazena o token e redireciona
     sessionStorage.setItem('authToken', data.token);
-    sessionStorage.setItem('username', data.username);
+    sessionStorage.setItem('username', credentials.username);
     
-    window.location.href = 'index.html';
+    // Verifica se precisa redirecionar após login
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    
+    if (redirect) {
+      window.location.href = `${redirect}.html?migrate=true`;
+    } else {
+      window.location.href = 'index.html';
+    }
   } catch (error) {
     alert(error.message);
     console.error('Erro no login:', error);

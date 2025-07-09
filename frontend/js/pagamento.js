@@ -172,7 +172,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const token = sessionStorage.getItem('authToken');
     if (!token) {
-      window.location.href = 'login.html';
+      alert('Você precisa fazer login para finalizar a compra');
+      window.location.href = 'login.html?redirect=pagamento';
       return;
     }
 
@@ -191,5 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pixValor').textContent = `R$ ${data.total.toFixed(2)}`;
   } catch (error) {
     console.error('Erro ao carregar total:', error);
+    // Adicione tratamento visual de erro se necessário
+    document.getElementById('totalAmount').textContent = 'Erro ao carregar';
   }
 });
