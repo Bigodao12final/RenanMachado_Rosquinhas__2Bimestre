@@ -3,10 +3,10 @@ async function displayProducts() {
   try {
     const response = await fetch('/api/products');
     const products = await response.json();
-    
+
     const productsContainer = document.getElementById('products');
     productsContainer.innerHTML = '';
-    
+
     products.forEach(product => {
       const productElement = document.createElement('div');
       productElement.className = 'product';
@@ -25,22 +25,31 @@ async function displayProducts() {
   }
 }
 
-// Função para adicionar ao carrinho
+// Função para adicionar ao carrinho sem exigir login
 async function addToCart(productId, name, price) {
   try {
-    const token = sessionStorage.getItem('authToken');
-    if (!token) {
-      alert('Você precisa estar logado para adicionar itens ao carrinho');
-      window.location.href = 'login.html';
-      return;
+    let token = sessionStorage.getItem('authToken');
+    let sessionId = sessionStorage.getItem('sessionId');
+
+    // Se não existir sessionId para guest, cria um
+    if (!token && !sessionId) {
+      sessionId = `guest_${Date.now()}`;
+      sessionStorage.setItem('sessionId', sessionId);
+    }
+
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else if (sessionId) {
+      headers['Session-Id'] = sessionId;
     }
 
     const response = await fetch('/api/cart', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers,
       body: JSON.stringify({
         productId,
         name,
@@ -53,11 +62,9 @@ async function addToCart(productId, name, price) {
       throw new Error('Erro ao adicionar ao carrinho');
     }
 
-    alert(`${name} adicionado ao carrinho!`);
     updateCartCounter();
   } catch (error) {
     console.error('Erro ao adicionar ao carrinho:', error);
-    alert(error.message);
   }
 }
 
@@ -65,16 +72,16 @@ async function addToCart(productId, name, price) {
 async function updateCartCounter() {
   try {
     const token = sessionStorage.getItem('authToken');
-    if (!token) {
-      document.getElementById('cartCount').textContent = '0';
-      return;
+    const sessionId = sessionStorage.getItem('sessionId');
+
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else if (sessionId) {
+      headers['Session-Id'] = sessionId;
     }
 
-    const response = await fetch('/api/cart', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await fetch('/api/cart', { headers });
 
     if (!response.ok) {
       throw new Error('Erro ao carregar carrinho');
@@ -92,17 +99,25 @@ async function updateCartCounter() {
 function checkLoggedIn() {
   const token = sessionStorage.getItem('authToken');
   const username = sessionStorage.getItem('username');
-  
+
+  const greeting = document.getElementById('userGreeting');
+  const loginLink = document.getElementById('loginLink');
+  const registerLink = document.getElementById('registerLink');
+  const logoutLink = document.getElementById('logoutLink');
+
   if (token && username) {
-    document.getElementById('userGreeting').textContent = `Olá, ${username}`;
-    document.getElementById('logoutLink').style.display = 'block';
+    greeting.textContent = `Olá, ${username}`;
+    if (logoutLink) logoutLink.style.display = 'inline';
+    if (loginLink) loginLink.style.display = 'none';
+    if (registerLink) registerLink.style.display = 'none';
   } else {
-    document.getElementById('logoutLink').style.display = 'none';
+    greeting.textContent = '';
+    if (logoutLink) logoutLink.style.display = 'none';
+    if (loginLink) loginLink.style.display = 'inline';
+    if (registerLink) registerLink.style.display = 'inline';
   }
-  // Sempre mostra login/cadastro
-  document.getElementById('loginLink').style.display = 'block';
-  document.getElementById('registerLink').style.display = 'block';
 }
+
 // Logout
 function logout() {
   sessionStorage.removeItem('authToken');

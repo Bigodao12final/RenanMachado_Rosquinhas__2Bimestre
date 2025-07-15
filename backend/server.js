@@ -3,7 +3,8 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');              
+const fsp = require('fs').promises;  
 const csv = require('csv-parser');
 const { stringify } = require('csv-stringify');
 
@@ -35,6 +36,14 @@ function authenticateOptional(req, res, next) {
     } catch (error) {
       // Token inválido, continua como guest
     }
+  }
+  next();
+}
+// Middleware: identificar visitantes por Session-Id
+function identifySession(req, res, next) {
+  const sessionId = req.headers['session-id'];
+  if (sessionId) {
+    req.sessionId = sessionId;
   }
   next();
 }
@@ -114,44 +123,46 @@ app.get('/api/cart', authenticateOptional, async (req, res) => {
   }
 });
 
-app.post('/api/cart', authenticateOptional, async (req, res) => {
+app.post('/api/cart', authenticateOptional, identifySession, async (req, res) => {
   try {
     const { productId, name, price, quantity } = req.body;
-    const carts = await readCSV(path.join(__dirname, 'models/carts.csv'));
-    
-    let identifier;
-    if (req.user) {
-      identifier = { userId: req.user.userId };
-    } else {
-      identifier = { sessionId: req.headers['session-id'] || 'guest' };
+
+    if (!productId || !name || !price || !quantity) {
+      return res.status(400).json({ error: 'Dados incompletos para adicionar ao carrinho' });
     }
 
-    const existingItem = carts.find(
-      c => c.productId == productId && 
-      ((c.userId && c.userId == identifier.userId) || 
-       (c.sessionId && c.sessionId == identifier.sessionId))
-    );
+    const cartItems = await readCSV(path.join(__dirname, 'models', 'carts.csv'));
 
-    if (existingItem) {
-      existingItem.quantity = parseInt(existingItem.quantity) + parseInt(quantity);
+    // Cria o item com dados completos
+    const newItem = {
+  id: String(Date.now()),
+  productId,
+  name,
+  price,
+  quantity,
+  userId: req.user?.userId || undefined,
+  sessionId: req.sessionId || undefined
+};
+
+    // Salva para usuário logado ou visitante
+    if (req.user?.userId) {
+      newItem.userId = req.user.userId;
+    } else if (req.sessionId) {
+      newItem.sessionId = req.sessionId;
     } else {
-      carts.push({
-        id: Date.now(),
-        ...identifier,
-        productId,
-        name,
-        price,
-        quantity
-      });
+      return res.status(401).json({ error: 'Usuário não autenticado ou visitante sem ID' });
     }
 
-    await writeCSV(path.join(__dirname, 'models/carts.csv'), carts);
-    res.json({ success: true });
+    cartItems.push(newItem);
+    await writeCSV(path.join(__dirname, 'models', 'carts.csv'), cartItems);
+
+    res.status(201).json({ message: 'Item adicionado ao carrinho com sucesso', item: newItem });
   } catch (error) {
-    console.error('Erro ao adicionar ao carrinho:', error);
-    res.status(500).json({ error: 'Erro interno no servidor' });
+    console.error('Erro ao adicionar item ao carrinho:', error);
+    res.status(500).json({ error: 'Erro interno ao adicionar ao carrinho' });
   }
 });
+
 
 app.delete('/api/cart/:id', authenticateOptional, async (req, res) => {
   try {
@@ -234,7 +245,7 @@ app.get(/^\/(?!api).*/, (req, res) => {
 // Funções auxiliares para CSV
 async function readCSV(filePath) {
   try {
-    await fs.access(filePath);
+await fsp.access(filePath);
   } catch {
     return [];
   }
@@ -253,9 +264,10 @@ async function writeCSV(filePath, data) {
   return new Promise((resolve, reject) => {
     stringify(data, { header: true }, (err, output) => {
       if (err) return reject(err);
-      fs.writeFile(filePath, output)
-        .then(resolve)
-        .catch(reject);
+     fsp.writeFile(filePath, output)
+  .then(resolve)
+  .catch(reject);
+
     });
   });
 }
@@ -266,20 +278,28 @@ app.listen(PORT, async () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   
   // Criar arquivos CSV se não existirem
-  const modelsDir = path.join(__dirname, 'models');
-  try {
-    await fs.mkdir(modelsDir, { recursive: true });
-    
-    if (!(await fs.access(path.join(modelsDir, 'users.csv')).catch(() => true))) {
-      await writeCSV(path.join(modelsDir, 'users.csv'), [
-        { id: '1', username: 'admin', email: 'admin@example.com', password: 'admin123' }
-      ]);
-    }
+ const modelsDir = path.join(__dirname, 'models');
+try {
+  // Cria a pasta models se não existir
+  await fsp.mkdir(modelsDir, { recursive: true });
 
-    if (!(await fs.access(path.join(modelsDir, 'carts.csv')).catch(() => true))) {
-      await writeCSV(path.join(modelsDir, 'carts.csv'), []);
-    }
-  } catch (error) {
-    console.error('Erro ao inicializar arquivos CSV:', error);
+  // Verifica e cria users.csv
+  try {
+    await fsp.access(path.join(modelsDir, 'users.csv'));
+  } catch {
+    await writeCSV(path.join(modelsDir, 'users.csv'), [
+      { id: '1', username: 'admin', email: 'admin@example.com', password: 'admin123' }
+    ]);
   }
-});
+
+  // Verifica e cria carts.csv
+  try {
+    await fsp.access(path.join(modelsDir, 'carts.csv'));
+  } catch {
+    await writeCSV(path.join(modelsDir, 'carts.csv'), []);
+  }
+
+} catch (error) {
+  console.error('Erro ao inicializar arquivos CSV:', error);
+}
+})
