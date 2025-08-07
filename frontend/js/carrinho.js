@@ -25,14 +25,20 @@ if (!sessionId) {
 async function loadCart() {
   try {
     const token = sessionStorage.getItem('authToken');
-    const headers = token
+    const sessionId = sessionStorage.getItem('sessionId');
+    const headers = token 
       ? { Authorization: `Bearer ${token}` }
       : { 'Session-Id': sessionId };
 
-    const response = await fetch('/api/cart', { headers });
-    if (!response.ok) throw new Error('Erro ao carregar carrinho');
+    // Carrega produtos disponíveis para obter as imagens
+    const productsResponse = await fetch('/api/products');
+    const allProducts = await productsResponse.json();
 
-    const cart = await response.json();
+    // Carrega itens do carrinho
+    const cartResponse = await fetch('/api/cart', { headers });
+    if (!cartResponse.ok) throw new Error('Erro ao carregar carrinho');
+    
+    const cart = await cartResponse.json();
     const cartItems = document.getElementById('cartItems');
     const totalEl = document.getElementById('total');
     cartItems.innerHTML = '';
@@ -48,12 +54,16 @@ async function loadCart() {
       const quantity = parseInt(item.quantity);
       const unitPrice = parseFloat(item.price);
       const itemTotal = unitPrice * quantity;
+      
+      // Encontra o produto correspondente para obter a imagem
+      const product = allProducts.find(p => p.id === item.productId);
+      const productImage = product ? product.image : 'img/default.jpg';
 
       const li = document.createElement('li');
       li.className = 'cart-item';
 
       const img = document.createElement('img');
-      img.src = productImages[item.name] || 'img/default.jpg';
+      img.src = productImage;
       img.alt = item.name;
 
       const info = document.createElement('div');
@@ -126,6 +136,7 @@ async function removeFromCart(itemId) {
 
 async function migrateGuestCart() {
   const token = sessionStorage.getItem('authToken');
+  const sessionId = sessionStorage.getItem('sessionId');
   if (!token || !sessionId) return;
 
   try {
@@ -138,8 +149,8 @@ async function migrateGuestCart() {
     });
 
     if (response.ok) {
-      localStorage.removeItem('sessionId');
-      sessionId = null;
+      sessionStorage.removeItem('sessionId');
+      loadCart(); // Recarrega o carrinho após migração
     }
   } catch (error) {
     console.error('Erro ao migrar carrinho:', error);
