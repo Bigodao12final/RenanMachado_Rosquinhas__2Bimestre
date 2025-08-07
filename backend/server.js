@@ -47,7 +47,16 @@ function identifySession(req, res, next) {
   }
   next();
 }
-
+// Rota para obter produtos
+app.get('/api/products', async (req, res) => {
+  try {
+    const products = await readCSV(path.join(__dirname, 'models/carts.csv'));
+    res.json(products);
+  } catch (error) {
+    console.error('Erro ao obter produtos:', error);
+    res.status(500).json({ error: 'Erro interno no servidor' });
+  }
+});
 // Rotas de Autenticação
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -133,25 +142,15 @@ app.post('/api/cart', authenticateOptional, identifySession, async (req, res) =>
 
     const cartItems = await readCSV(path.join(__dirname, 'models', 'carts.csv'));
 
-    // Cria o item com dados completos
     const newItem = {
-  id: String(Date.now()),
-  productId,
-  name,
-  price,
-  quantity,
-  userId: req.user?.userId || undefined,
-  sessionId: req.sessionId || undefined
-};
-
-    // Salva para usuário logado ou visitante
-    if (req.user?.userId) {
-      newItem.userId = req.user.userId;
-    } else if (req.sessionId) {
-      newItem.sessionId = req.sessionId;
-    } else {
-      return res.status(401).json({ error: 'Usuário não autenticado ou visitante sem ID' });
-    }
+      id: String(Date.now()),
+      productId,
+      name,
+      price,
+      quantity,
+      userId: req.user?.userId || undefined,
+      sessionId: req.sessionId || undefined
+    };
 
     cartItems.push(newItem);
     await writeCSV(path.join(__dirname, 'models', 'carts.csv'), cartItems);
